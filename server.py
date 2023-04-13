@@ -24,10 +24,6 @@ CORS(app, resources=r'/*')
 def HandleLogin():
     data = request.get_data(as_text=True);
     j_data = json.loads(data);
-    print(data)
-    print(j_data)
-    print(j_data['name'])
-    print(j_data['password'])
 
     name = j_data['name'];
     password = j_data['password'];
@@ -47,6 +43,39 @@ def HandleLogin():
     response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
+
+
+@app.route("/register", methods=['GET', 'POST'])
+def HandleRegister():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+    print(data)
+    print(j_data)
+    print(j_data['name'])
+    print(j_data['password'])
+    print(j_data['loginRole'])
+
+    name = j_data['name'];
+    password = j_data['password'];
+    role = j_data['loginRole'];
+    result_text = '';
+    if name and password:
+        try:
+            sql = 'INSERT INTO users (name, account, password, role) values ("{name}", "", "{password}", "{role}");'.format(name=name, password=password, role=role);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+
+
  
 # # 使用 execute()  方法执行 SQL 查询 
 # cursor.execute("SELECT VERSION()")

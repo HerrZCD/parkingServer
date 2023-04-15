@@ -44,6 +44,34 @@ def HandleLogin():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/getSpots", methods=['GET', 'POST'])
+def HandleGetSpots():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    name = j_data['name'];
+    result_text = '';
+    result_arr = [];
+    if name:
+        try:
+            sql = "SELECT * FROM spots where owner='"+name + "';"
+            print(sql);
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            for result in results:
+                width, height, location, price, user_time_start, user_time_end, owner, id = result;
+                text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id};
+                result_arr.append(text);
+                result_text = {"statusCode": 200, "status": "success", "results": result_arr}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+
 
 @app.route("/register", methods=['GET', 'POST'])
 def HandleRegister():
@@ -78,15 +106,6 @@ def HandleRegister():
 def HandleAddSpots():
     data = request.get_data(as_text=True);
     j_data = json.loads(data);
-    print(data)
-    print(j_data)
-    print(j_data['width'])
-    print(j_data['height'])
-    print(j_data['location'])
-    print(j_data['price'])
-    print(j_data['user_time_start'])
-    print(j_data['user_time_end'])
-    print(j_data['owner'])
 
     width = j_data['width'];
     height = j_data['height'];
@@ -95,6 +114,7 @@ def HandleAddSpots():
     price = j_data['price'];
     user_time_start = j_data['user_time_start'];
     user_time_end = j_data['user_time_end'];
+    result_text = {"statusCode": 200, "status": "fail"}
 
     if width and height and location and owner:
         try:
@@ -105,11 +125,11 @@ def HandleAddSpots():
             result_text = {"statusCode": 200, "status": "success"}
         except:
             result_text = {"statusCode": 200, "status": "fail"}
-        response = make_response(jsonify(result_text))
-        response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
-        response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
-        return response
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
 
 def EnsureParkingSpotsTable():
     sql = '''

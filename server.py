@@ -75,7 +75,7 @@ def HandleRegister():
     return response
 
 @app.route("/addspots", methods=['GET', 'POST'])
-def HandleRegister():
+def HandleAddSpots():
     data = request.get_data(as_text=True);
     j_data = json.loads(data);
     print(data)
@@ -86,17 +86,19 @@ def HandleRegister():
     print(j_data['price'])
     print(j_data['user_time_start'])
     print(j_data['user_time_end'])
+    print(j_data['owner'])
 
     width = j_data['width'];
     height = j_data['height'];
     location = j_data['location'];
+    owner = j_data['owner'];
     price = j_data['price'];
     user_time_start = j_data['user_time_start'];
     user_time_end = j_data['user_time_end'];
 
-    if width and height and location:
+    if width and height and location and owner:
         try:
-            sql = 'INSERT INTO spots (width, height, location, price, user_time_start, user_time_end) values ("{width}", "{height}", "{location}", "{price}", "{user_time_start}", "{user_time_end}");'.format(width=width, height=height, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end);
+            sql = 'INSERT INTO spots (width, height, owner, location, price, user_time_start, user_time_end) values ("{width}", "{height}", "{owner}", "{location}", "{price}", "{user_time_start}", "{user_time_end}");'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end);
             print(sql)
             cursor.execute(sql);
             db.commit();
@@ -112,14 +114,14 @@ def HandleRegister():
 def EnsureParkingSpotsTable():
     sql = '''
     CREATE TABLE IF NOT EXISTS `spots`(
-   `id` INT UNSIGNED AUTO_INCREMENT,
+   `id` INT AUTO_INCREMENT PRIMARY KEY,
    `width` INT NOT NULL,
    `height` INT NOT NULL,
+   `owner` varchar(100) NOT NULL,
    `location` varchar(100) NOT NULL,
    `user_time_start` INT,
    `user_time_end` INT,
-   `price` INT,
-    PRIMARY KEY ( `id` )
+   `price` INT
     )
     '''
     cursor.execute(sql);

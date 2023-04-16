@@ -54,7 +54,10 @@ def HandleGetSpots():
     result_arr = [];
     if name:
         try:
-            sql = "SELECT * FROM spots where owner='"+name + "';"
+            if name == 'ALLUSERNAMES':
+                sql = "SELECT * FROM spots;"
+            else:
+                sql = "SELECT * FROM spots where owner='"+name + "';"
             print(sql);
             cursor.execute(sql);
             results = cursor.fetchall();

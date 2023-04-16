@@ -131,6 +131,59 @@ def HandleAddSpots():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/modifyspots", methods=['GET', 'POST'])
+def HandleModifySpots():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    width = j_data['width'];
+    height = j_data['height'];
+    location = j_data['location'];
+    owner = j_data['owner'];
+    price = j_data['price'];
+    id = j_data['id'];
+    user_time_start = j_data['user_time_start'];
+    user_time_end = j_data['user_time_end'];
+    result_text = {"statusCode": 200, "status": "fail"}
+
+    if id:
+        try:
+            sql = 'UPDATE spots SET width="{width}", height="{height}", location="{width}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+@app.route("/deletespots", methods=['GET', 'POST'])
+def HandleDeleteSpots():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    id = j_data['id'];
+    result_text = {"statusCode": 200, "status": "fail"}
+
+    if id:
+        try:
+            sql = 'DELETE FROM spots where id={id};'.format(id=id);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
 def EnsureParkingSpotsTable():
     sql = '''
     CREATE TABLE IF NOT EXISTS `spots`(

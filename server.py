@@ -62,8 +62,8 @@ def HandleGetSpots():
             cursor.execute(sql);
             results = cursor.fetchall();
             for result in results:
-                width, height, location, price, user_time_start, user_time_end, owner, id = result;
-                text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id};
+                width, height, location, price, user_time_start, user_time_end, owner, id, lat, lng = result;
+                text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id, "lat": lat, "lng": lng};
                 result_arr.append(text);
                 result_text = {"statusCode": 200, "status": "success", "results": result_arr}
         except:
@@ -117,11 +117,13 @@ def HandleAddSpots():
     price = j_data['price'];
     user_time_start = j_data['user_time_start'];
     user_time_end = j_data['user_time_end'];
+    lat = j_data['lat'];
+    lng = j_data['lng'];
     result_text = {"statusCode": 200, "status": "fail"}
 
     if width and height and location and owner:
         try:
-            sql = 'INSERT INTO spots (width, height, owner, location, price, user_time_start, user_time_end) values ("{width}", "{height}", "{owner}", "{location}", "{price}", "{user_time_start}", "{user_time_end}");'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end);
+            sql = 'INSERT INTO spots (width, height, owner, location, price, user_time_start, user_time_end, lat, lng) values ("{width}", "{height}", "{owner}", "{location}", "{price}", "{user_time_start}", "{user_time_end}", "{lat}", "{lng}");'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, lat=lat, lng=lng);
             print(sql)
             cursor.execute(sql);
             db.commit();
@@ -145,13 +147,15 @@ def HandleModifySpots():
     owner = j_data['owner'];
     price = j_data['price'];
     id = j_data['id'];
+    lat = j_data['lat'];
+    lng = j_data['lng'];
     user_time_start = j_data['user_time_start'];
     user_time_end = j_data['user_time_end'];
     result_text = {"statusCode": 200, "status": "fail"}
 
     if id:
         try:
-            sql = 'UPDATE spots SET width="{width}", height="{height}", location="{width}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id);
+            sql = 'UPDATE spots SET width="{width}", height="{height}", location="{width}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}", lat="{lat}", lng="{lng}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id, lat=lat, lng=lng);
             print(sql)
             cursor.execute(sql);
             db.commit();
@@ -197,7 +201,9 @@ def EnsureParkingSpotsTable():
    `location` varchar(100) NOT NULL,
    `user_time_start` INT,
    `user_time_end` INT,
-   `price` INT
+   `price` INT,
+   `lat` DOUBLE,
+   `lng` DOUBLE
     )
     '''
     cursor.execute(sql);

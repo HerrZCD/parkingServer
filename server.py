@@ -136,6 +136,37 @@ def HandleAddSpots():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/createorder", methods=['GET', 'POST'])
+def HandleCreateOrder():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    spot_id = j_data['spot_id'];
+    location = j_data['location'];
+    owner = j_data['owner'];
+    user = j_data['user'];
+    price = j_data['price'];
+    user_time_start = j_data['user_time_start'];
+    duration = j_data['duration'];
+    result_text = {"statusCode": 200, "status": "fail"}
+
+    if id and spot_id and owner and price and user and duration:
+        try:
+            sql = 'INSERT INTO orders (spot_id, owner, user, location, price, user_time_start, duration) values ("{spot_id}", "{owner}", "{user}", \
+            "{location}", "{price}", "{user_time_start}", "{duration}");'.format(spot_id=spot_id, owner=owner, user=user, location=location, \
+            price=price, user_time_start=user_time_start, duration=duration);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
 @app.route("/modifyspots", methods=['GET', 'POST'])
 def HandleModifySpots():
     data = request.get_data(as_text=True);
@@ -199,8 +230,8 @@ def EnsureParkingSpotsTable():
    `height` INT NOT NULL,
    `owner` varchar(100) NOT NULL,
    `location` varchar(100) NOT NULL,
-   `user_time_start` INT,
-   `user_time_end` INT,
+   `user_time_start` varchar(30),
+   `user_time_end` varchar(30),
    `price` INT,
    `lat` DOUBLE,
    `lng` DOUBLE
@@ -208,7 +239,23 @@ def EnsureParkingSpotsTable():
     '''
     cursor.execute(sql);
 
+def EnsureOrderTable():
+    sql = '''
+    CREATE TABLE IF NOT EXISTS `orders`(
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `spot_id` INT NOT NULL,
+    `price` INT NOT NULL,
+    `owner` varchar(100) NOT NULL,
+    `user` varchar(100) NOT NULL,
+    `location` varchar(100) NOT NULL,
+    `user_time_start` varchar(30),
+    `duration` INT
+    )
+    '''
+    cursor.execute(sql);
+
 EnsureParkingSpotsTable();
+EnsureOrderTable();
 
 
  

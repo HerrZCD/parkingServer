@@ -167,6 +167,40 @@ def HandleCreateOrder():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/getorders", methods=['GET', 'POST'])
+def HandleGetOrders():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    name = j_data['name'];
+    role = j_data['role'];
+    result_text = '';
+    result_arr = [];
+    if name:
+        try:
+            if name == 'ALLUSERNAMES':
+                sql = "SELECT * FROM orders;"
+            else:
+                if role == 'User':
+                    sql = "SELECT * FROM orders where user='"+name + "';"
+                elif role == 'Owner':
+                    sql = "SELECT * FROM orders where owner='"+name + "';"
+            print(sql);
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            for result in results:
+                id, spot_id, price, owner, user, location, user_time_start, duration = result;
+                text = {"id": id, "spot_id": spot_id, "price": price, "owner": owner, "user": user, "location": location, "user_time_start": user_time_start, "duration": duration};
+                result_arr.append(text);
+                result_text = {"statusCode": 200, "status": "success", "results": result_arr}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
 @app.route("/modifyspots", methods=['GET', 'POST'])
 def HandleModifySpots():
     data = request.get_data(as_text=True);
@@ -186,7 +220,7 @@ def HandleModifySpots():
 
     if id:
         try:
-            sql = 'UPDATE spots SET width="{width}", height="{height}", location="{width}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}", lat="{lat}", lng="{lng}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id, lat=lat, lng=lng);
+            sql = 'UPDATE spots SET width="{width}", height="{height}", location="{location}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}", lat="{lat}", lng="{lng}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id, lat=lat, lng=lng);
             print(sql)
             cursor.execute(sql);
             db.commit();

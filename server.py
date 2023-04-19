@@ -62,8 +62,8 @@ def HandleGetSpots():
             cursor.execute(sql);
             results = cursor.fetchall();
             for result in results:
-                width, height, location, price, user_time_start, user_time_end, owner, id, lat, lng = result;
-                text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id, "lat": lat, "lng": lng};
+                width, height, location, price, user_time_start, user_time_end, owner, id, lat, lng, likes = result;
+                text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id, "lat": lat, "lng": lng, "likes": likes};
                 result_arr.append(text);
                 result_text = {"statusCode": 200, "status": "success", "results": result_arr}
         except:
@@ -319,6 +319,36 @@ def HandleChangeOrderState():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/like", methods=['GET', 'POST'])
+def HandleLike():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    id = j_data['id'];
+    result_text = {"statusCode": 200, "status": "fail"}
+
+    if id:
+        try:
+            sql = "SELECT likes FROM spots where id='"+str(id) + "';";
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            likes, = results[0];
+            if not likes:
+                likes = 0;
+            likes = likes + 1;
+            sql = 'UPDATE spots SET likes="{likes}" where id ="{id}";'.format(id=str(id), likes=likes);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
 @app.route("/deletespots", methods=['GET', 'POST'])
 def HandleDeleteSpots():
     data = request.get_data(as_text=True);
@@ -354,7 +384,8 @@ def EnsureParkingSpotsTable():
    `user_time_end` varchar(30),
    `price` INT,
    `lat` DOUBLE,
-   `lng` DOUBLE
+   `lng` DOUBLE,
+   `likes` int default "0"
     )
     '''
     cursor.execute(sql);

@@ -33,9 +33,9 @@ def HandleLogin():
             sql = "SELECT * FROM users where name='"+name + "'";
             cursor.execute(sql);
             result = cursor.fetchall();
-            dbname, dbaccount, dbpassword, dbrole = result[0];
+            dbname, dbaccount, dbpassword, dbrole, balance = result[0];
             if dbpassword == password:
-                result_text = {"statusCode": 200, "status": "success", "role": dbrole}
+                result_text = {"statusCode": 200, "status": "success", "role": dbrole, "balance": balance}
         except:
             result_text = {"statusCode": 200, "status": "fail"}
     response = make_response(jsonify(result_text))
@@ -189,10 +189,72 @@ def HandleGetOrders():
             cursor.execute(sql);
             results = cursor.fetchall();
             for result in results:
-                id, spot_id, price, owner, user, location, user_time_start, duration = result;
-                text = {"id": id, "spot_id": spot_id, "price": price, "owner": owner, "user": user, "location": location, "user_time_start": user_time_start, "duration": duration};
+                id, spot_id, price, owner, user, location, user_time_start, duration, state = result;
+                text = {"id": id, "spot_id": spot_id, "price": price, "owner": owner, "user": user, "location": location,\
+                        "user_time_start": user_time_start, "duration": duration, "state": state};
                 result_arr.append(text);
                 result_text = {"statusCode": 200, "status": "success", "results": result_arr}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+@app.route("/getbalance", methods=['GET', 'POST'])
+def HandleGetBalance():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    name = j_data['name'];
+    if name:
+        try:
+            sql = "SELECT balance FROM users where name='"+name + "'";
+            print(sql);
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            balance = results[0];
+            result_text = {"statusCode": 200, "status": "success", "balance": balance}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+@app.route("/setBalance", methods=['GET', 'POST'])
+def HandleSetBalance():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    user = j_data['user'];
+    owner = j_data['owner'];
+    money = j_data['money'];
+    if user:
+        try:
+            sql = "SELECT balance FROM users where name='"+user + "';";
+            print(sql);
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            balance, = results[0];
+            new_balance = balance - int(money);
+            sql = 'UPDATE users SET balance="{balance}" where name="{user}";'.format(balance=new_balance, user=user);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            sql = "SELECT balance FROM users where name='"+owner + "';";
+            print(sql);
+            cursor.execute(sql);
+            results = cursor.fetchall();
+            balance, = results[0];
+            new_balance = balance + int(money * 0.9);
+            sql = 'UPDATE users SET balance="{balance}" where name="{user}";'.format(balance=new_balance, user=owner);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success", "balance": balance}
         except:
             result_text = {"statusCode": 200, "status": "fail"}
     response = make_response(jsonify(result_text))
@@ -221,6 +283,30 @@ def HandleModifySpots():
     if id:
         try:
             sql = 'UPDATE spots SET width="{width}", height="{height}", location="{location}", price="{price}", user_time_start="{user_time_start}", user_time_end="{user_time_end}", lat="{lat}", lng="{lng}" where id={id};'.format(width=width, height=height, owner=owner, location=location, price=price, user_time_start=user_time_start, user_time_end=user_time_end, id=id, lat=lat, lng=lng);
+            print(sql)
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
+@app.route("/changeorderstate", methods=['GET', 'POST'])
+def HandleChangeOrderState():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    id = j_data['id'];
+    state = j_data['state'];
+    result_text = {"statusCode": 200, "status": "fail"}
+
+    if id:
+        try:
+            sql = 'UPDATE orders SET state="{state}" where id ="{id}";'.format(id=id, state=state);
             print(sql)
             cursor.execute(sql);
             db.commit();
@@ -273,6 +359,17 @@ def EnsureParkingSpotsTable():
     '''
     cursor.execute(sql);
 
+def EnsureUserTable():
+    sql = '''
+    CREATE TABLE IF NOT EXISTS `users`(
+   `name` varchar(100) PRIMARY KEY,
+   `password` varchar(20),
+   `role` varchar(20),
+   `balance` int default "1000"
+    )
+    '''
+    cursor.execute(sql);
+
 def EnsureOrderTable():
     sql = '''
     CREATE TABLE IF NOT EXISTS `orders`(
@@ -283,11 +380,13 @@ def EnsureOrderTable():
     `user` varchar(100) NOT NULL,
     `location` varchar(100) NOT NULL,
     `user_time_start` varchar(30),
-    `duration` INT
+    `duration` INT,
+    `state` varchar(20) default "unconfirm"
     )
     '''
     cursor.execute(sql);
 
+EnsureUserTable();
 EnsureParkingSpotsTable();
 EnsureOrderTable();
 

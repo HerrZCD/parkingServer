@@ -219,7 +219,7 @@ def HandleGetBalance():
             print(sql);
             cursor.execute(sql);
             results = cursor.fetchall();
-            balance = results[0];
+            balance, = results[0];
             result_text = {"statusCode": 200, "status": "success", "balance": balance}
         except:
             result_text = {"statusCode": 200, "status": "fail"}
@@ -381,7 +381,6 @@ def EnsureParkingSpotsTable():
     sql = '''
     CREATE TABLE IF NOT EXISTS `spots`(
    `id` INT AUTO_INCREMENT PRIMARY KEY,
-   `spot_id `int,
    `width` INT NOT NULL,
    `height` INT NOT NULL,
    `owner` varchar(100) NOT NULL,

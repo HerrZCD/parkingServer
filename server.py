@@ -29,18 +29,18 @@ def HandleLogin():
     password = j_data['password'];
     result_text = {"statusCode": 200, "status": "fail"};
     if name and password:
-        # try:
-        sql = "SELECT * FROM users where name='"+name + "';";
-        print(sql)
-        cursor.execute(sql);
-        result = cursor.fetchall();
-        dbname, dbpassword, dbaccount, dbrole, balance = result[0];
-        if dbpassword == password:
-            result_text = {"statusCode": 200, "status": "success", "role": dbrole, "balance": balance}
-        else:
-            print("invalid password")
-        # except:
-        #     result_text = {"statusCode": 200, "status": "fail"}
+        try:
+            sql = "SELECT * FROM users where name='"+name + "';";
+            print(sql)
+            cursor.execute(sql);
+            result = cursor.fetchall();
+            dbname, dbpassword, dbaccount, dbrole, balance = result[0];
+            if dbpassword == password:
+                result_text = {"statusCode": 200, "status": "success", "role": dbrole, "balance": balance}
+            else:
+                print("invalid password")
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
     response = make_response(jsonify(result_text))
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
@@ -65,7 +65,8 @@ def HandleGetSpots():
             cursor.execute(sql);
             results = cursor.fetchall();
             for result in results:
-                width, height, location, price, user_time_start, user_time_end, owner, id, lat, lng, likes = result;
+                print(result);
+                id, width, height, owner, location, user_time_start, user_time_end, price, lat, lng, likes = result;
                 text = {"width": width, "height": height, "location": location, "price": price, "user_time_start": user_time_start, "user_time_end": user_time_end, "owner": owner, "id": id, "lat": lat, "lng": lng, "likes": likes};
                 result_arr.append(text);
                 result_text = {"statusCode": 200, "status": "success", "results": result_arr}
@@ -192,6 +193,7 @@ def HandleGetOrders():
             cursor.execute(sql);
             results = cursor.fetchall();
             for result in results:
+                print(result)
                 id, spot_id, price, owner, user, location, user_time_start, duration, state = result;
                 text = {"id": id, "spot_id": spot_id, "price": price, "owner": owner, "user": user, "location": location,\
                         "user_time_start": user_time_start, "duration": duration, "state": state};
@@ -379,6 +381,7 @@ def EnsureParkingSpotsTable():
     sql = '''
     CREATE TABLE IF NOT EXISTS `spots`(
    `id` INT AUTO_INCREMENT PRIMARY KEY,
+   `spot_id `int,
    `width` INT NOT NULL,
    `height` INT NOT NULL,
    `owner` varchar(100) NOT NULL,

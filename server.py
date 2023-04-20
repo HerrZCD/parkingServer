@@ -431,7 +431,7 @@ def EnsureUserTable():
    `password` varchar(20),
    `account` varchar(100),
    `role` varchar(20),
-   `balance` int default "1000"
+   `balance` int default "0"
     )
     '''
     cursor.execute(sql);

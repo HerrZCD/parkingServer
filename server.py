@@ -11,7 +11,7 @@ import pymysql
 db = pymysql.connect(host='localhost',
                      user='root',
                      password='Amawenfei421',
-                     database='parking')
+                     database='parking2')
 
 cursor = db.cursor()
 
@@ -27,17 +27,20 @@ def HandleLogin():
 
     name = j_data['name'];
     password = j_data['password'];
-    result_text = '';
+    result_text = {"statusCode": 200, "status": "fail"};
     if name and password:
-        try:
-            sql = "SELECT * FROM users where name='"+name + "'";
-            cursor.execute(sql);
-            result = cursor.fetchall();
-            dbname, dbaccount, dbpassword, dbrole, balance = result[0];
-            if dbpassword == password:
-                result_text = {"statusCode": 200, "status": "success", "role": dbrole, "balance": balance}
-        except:
-            result_text = {"statusCode": 200, "status": "fail"}
+        # try:
+        sql = "SELECT * FROM users where name='"+name + "';";
+        print(sql)
+        cursor.execute(sql);
+        result = cursor.fetchall();
+        dbname, dbpassword, dbaccount, dbrole, balance = result[0];
+        if dbpassword == password:
+            result_text = {"statusCode": 200, "status": "success", "role": dbrole, "balance": balance}
+        else:
+            print("invalid password")
+        # except:
+        #     result_text = {"statusCode": 200, "status": "fail"}
     response = make_response(jsonify(result_text))
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
@@ -395,6 +398,7 @@ def EnsureUserTable():
     CREATE TABLE IF NOT EXISTS `users`(
    `name` varchar(100) PRIMARY KEY,
    `password` varchar(20),
+   `account` varchar(100),
    `role` varchar(20),
    `balance` int default "1000"
     )

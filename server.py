@@ -47,6 +47,35 @@ def HandleLogin():
     response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
     return response
 
+@app.route("/addbalance", methods=['GET', 'POST'])
+def HandleAddBalance():
+    data = request.get_data(as_text=True);
+    j_data = json.loads(data);
+
+    name = j_data['name'];
+    addValue = int(j_data['addValue']);
+    result_text = {"statusCode": 200, "status": "fail"};
+    if name and addValue:
+        try:
+            sql = "SELECT balance FROM users where name='"+name + "';";
+            print(sql)
+            cursor.execute(sql);
+            result = cursor.fetchall();
+            balance, = result[0];
+            balance = balance + addValue;
+            sql = 'UPDATE users SET balance="{balance}" where name="{name}";'.format(balance=balance, name=name);
+            print(sql);
+            cursor.execute(sql);
+            db.commit();
+            result_text = {"statusCode": 200, "status": "success"}
+        except:
+            result_text = {"statusCode": 200, "status": "fail"}
+    response = make_response(jsonify(result_text))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,HEAD,GET,POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return response
+
 @app.route("/getSpots", methods=['GET', 'POST'])
 def HandleGetSpots():
     data = request.get_data(as_text=True);
